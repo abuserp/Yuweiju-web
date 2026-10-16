@@ -1,0 +1,128 @@
+{
+  "id": "my-pack",
+  "name": "我的客人包",
+  "version": 1,
+  "_说明": "这是格式模板。官方那批炎国客人写在 js/packs/yan.js 里，格式完全一样。改完这个文件，在标题页点「载入 .json」上传即可；用本地服务器跑的话，把文件名加进 mods/index.json 会自动加载。所有字段都可省略，省略就用默认值。同 id 的包后来者覆盖前者。",
+  "guests": [
+    {
+      "id": "demo-guest",
+      "name": "无名客",
+      "portrait": null,
+      "_portrait": "立绘路径，例如 art/wuming.png。为 null 时画一块带名字的占位色块。",
+      "color": "#8a7fb0",
+      "patience": 55,
+      "pay": 1.6,
+      "crave": [
+        "fresh",
+        "cool"
+      ],
+      "_crave": "他馋的味道从这里抽。省略则和一般客人一样按当日菜牌抽。",
+      "party": 1,
+      "members": null,
+      "colors": null,
+      "_party": "双人客人写 party: 2，并用 members 给两个名字、colors 给两个占位色。两位都伺候完才触发剧情。",
+      "appear": {
+        "minDay": 3,
+        "needAff": 0,
+        "weight": 2,
+        "cooldown": 2,
+        "requires": [],
+        "maxVisits": 3,
+        "force": false,
+        "_说明": "minDay 第几天起可能出现；needAff 好感门槛；weight 多位同时符合条件时的抽签权重；cooldown 距上次到访至少隔几天；requires 需要的 flag；maxVisits 最多来几次，0 为不限；force 为 true 时条件一满足必定来。每天最多只安排一位。"
+      },
+      "effects": {
+        "regularWeight": {
+          "xuesheng": 1.5
+        },
+        "spawnRate": 1,
+        "affection": 0,
+        "unlockDish": [],
+        "flags": [],
+        "_说明": "他来过一次之后就一直生效。regularWeight 是一般客人权重的倍率（这里表示他来过之后学生变多）。可用的一般客人 id：jiefang 街坊 / tianshi 天师 / dalisi 大理寺官员 / youke 游客 / xunwei 巡卫 / xuesheng 学生。affection、unlockDish、flags 是一次性的，只在对话播完时结算一次。"
+      },
+      "stages": [
+        {
+          "visit": 1,
+          "lines": [
+            {
+              "who": "无名客",
+              "text": "……有清淡点的吗。"
+            },
+            {
+              "who": "老姜",
+              "text": "有。您先坐。",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "无名客",
+              "text": "多谢。",
+              "choices": [
+                {
+                  "text": "「不必客气。」",
+                  "affection": 2,
+                  "flag": "demo_kind"
+                },
+                {
+                  "text": "「客官面生。」",
+                  "affection": 0
+                }
+              ]
+            }
+          ],
+          "effects": {
+            "flags": [
+              "met_demo"
+            ]
+          }
+        },
+        {
+          "visit": 2,
+          "_说明": "约定俗成：第二段传一道菜。unlockDish 填 data.js 里 unlock.type 为 event 的菜 id。",
+          "lines": [
+            {
+              "who": "无名客",
+              "text": "这道我教你，别做坏了。"
+            },
+            {
+              "who": "余",
+              "text": "（他记下了。）",
+              "side": "right",
+              "color": "#5f9e8c"
+            }
+          ],
+          "effects": {
+            "unlockDish": [],
+            "affection": 5
+          }
+        },
+        {
+          "visit": 3,
+          "lines": [
+            {
+              "who": "无名客",
+              "text": "以后我常来。"
+            }
+          ],
+          "effects": {
+            "affection": 10
+          }
+        }
+      ]
+    }
+  ],
+  "regulars": [
+    {
+      "id": "xuesheng",
+      "name": "学生",
+      "color": "#b8896a",
+      "weight": 3,
+      "patience": 60,
+      "pay": 0.8,
+      "cravePool": null,
+      "_cravePool": "预留：填 [\"sweet\",\"sticky\"] 之类，这类客人就只馋这几味。现在六类常客全是 null，口味一致。",
+      "_说明": "id 和内置常客重名就是覆盖，否则是新增一类。"
+    }
+  ]
+}

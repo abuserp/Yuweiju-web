@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>余味居</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="frame">
+
+  <header class="masthead">
+    <h1>余味居</h1>
+    <p>做饭不一定要有灶台，一口锅，一把火，也能烧出一手好菜。<br>但有了灶台，就会有常客，就会有挂念。</p>
+  </header>
+
+  <div id="title" class="panel">
+    <div class="rules">
+      <h2>玩法介绍</h2>
+      <ul>
+        <li><b>WASD</b>／方向键走动，<b>空格</b>交互，<b>Q</b>倒掉手上的菜。手机在画面里按住拖动</li>
+        <li>余做好的菜堆在传菜口，取了送到客人手上。
+        <li>连着让客人吃到对味的菜会攒<b>连击</b>，余的手速、老姜的脚力和客流都跟着涨</li>
+        <li>缺料就在点单界面选<b>外卖救场</b>，实在伺候不了就<b>送客</b></li>
+        <li>晚上进货、排明天的菜牌。
+      </ul>
+    </div>
+    <div class="mods">
+      <h2>客人数据包</h2>
+      <ul id="mod-list" class="mod-list"></ul>
+      <label class="filebtn">载入 .json
+        <input type="file" id="mod-file" accept=".json,application/json" multiple hidden>
+      </label>
+      <p class="hint" id="mod-msg">特殊客人、对话、常客种类都写在数据包里。格式见 mods/example-pack.json。</p>
+    </div>
+
+    <div class="title-actions">
+      <button id="btn-new" class="primary">新开一家</button>
+      <button id="btn-continue">接着上次</button>
+      <button id="btn-wipe" class="ghost">清空存档</button>
+      <button id="btn-recall" class="ghost">剧情回想</button>
+    </div>
+  </div>
+
+  <div id="hud" class="hud" hidden>
+    <span id="hud-day">第 1 天</span>
+    <span id="hud-clock">100 秒</span>
+    <span class="purse"><b id="hud-money">0</b> 龙门币</span>
+    <span id="hud-aff">生疏 · 0</span>
+    <span id="hud-queue" class="dim">后厨 0 / 传菜口 0</span>
+  </div>
+
+  <canvas id="stage" hidden></canvas>
+
+  <div id="pad" class="pad" hidden>
+    <button id="btn-act" class="act">交互</button>
+    <button id="btn-toss">倒掉</button>
+    <span class="pad-tip">画面里按住拖动可以走</span>
+  </div>
+
+  <div id="adv" class="adv" hidden></div>
+
+  <div id="recall" class="panel" hidden></div>
+
+  <div id="night" class="panel" hidden></div>
+
+  <footer class="colophon">
+    非商业同人练手作品，全程OOC，如果找到符合人设的行为请联系鹰角停止刻画刻板印象。
+  </footer>
+
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/assets.js"></script>
+<script src="js/mods.js"></script>
+<script src="js/packs/yan.js"></script>
+<script src="js/adv.js"></script>
+<script src="js/recall.js"></script>
+<script src="js/render.js"></script>
+<script src="js/day.js"></script>
+<script src="js/night.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

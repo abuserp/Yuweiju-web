@@ -1,0 +1,397 @@
+{
+  "id": "yan-guests-extra",
+  "name": "炎国来客 · 选装",
+  "version": 1,
+  "_说明": "这四位从主包里摘出来了，默认不加载。想要就在标题页点「载入 .json」上传本文件。格式和 js/packs/yan.js 完全一致。",
+  "guests": [
+    {
+      "id": "agui",
+      "name": "阿贵",
+      "color": "#9a7b58",
+      "patience": 72,
+      "pay": 1.1,
+      "crave": [
+        "rich",
+        "sticky"
+      ],
+      "appear": {
+        "minDay": 3,
+        "weight": 3,
+        "cooldown": 2,
+        "maxVisits": 3
+      },
+      "stages": [
+        {
+          "visit": 1,
+          "lines": [
+            {
+              "who": "阿贵",
+              "text": "老板娘！有没有那种顶饱的？扛得住干一下午活的。"
+            },
+            {
+              "who": "老姜",
+              "text": "有。管够。",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "阿贵",
+              "text": "那太好了，我最怕吃两口就没了的那种精致玩意儿。"
+            }
+          ]
+        },
+        {
+          "visit": 2,
+          "lines": [
+            {
+              "who": "阿贵",
+              "text": "我娘从前做粉蒸的，米粉裹肉，一蒸半个时辰。"
+            },
+            {
+              "who": "老姜",
+              "text": "费火。",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "阿贵",
+              "text": "费火才香啊。方子我记着呢——就当谢你上次多给的那勺汤。"
+            },
+            {
+              "who": "余",
+              "text": "（他把方子往灶台上一放，转身就走了。）",
+              "side": "right",
+              "color": "#5f9e8c"
+            }
+          ],
+          "effects": {
+            "unlockDish": [
+              "fenzhengrou"
+            ],
+            "affection": 5
+          }
+        },
+        {
+          "visit": 3,
+          "lines": [
+            {
+              "who": "阿贵",
+              "text": "我跟工地上的兄弟都说了，这条街就你家实在。"
+            },
+            {
+              "who": "老姜",
+              "text": "那我得多备些米面。",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "阿贵",
+              "text": "备着吧，他们下工都往这儿来。"
+            }
+          ],
+          "effects": {
+            "affection": 8,
+            "regularWeight": {
+              "jiefang": 1.5
+            },
+            "spawnRate": 0.92
+          }
+        }
+      ]
+    },
+    {
+      "id": "zuole",
+      "name": "左乐",
+      "color": "#8a5a3c",
+      "patience": 76,
+      "pay": 1.6,
+      "crave": [
+        "rich",
+        "aroma",
+        "sticky"
+      ],
+      "appear": {
+        "minDay": 8,
+        "needAff": 200,
+        "weight": 2,
+        "cooldown": 3,
+        "maxVisits": 3
+      },
+      "stages": [
+        {
+          "visit": 1,
+          "lines": [
+            {
+              "who": "左乐",
+              "text": "这地方小，火候倒是稳。"
+            },
+            {
+              "who": "老姜",
+              "text": "客官是行家。",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "左乐",
+              "text": "带过兵，管过灶。锅大锅小，道理一样。"
+            }
+          ]
+        },
+        {
+          "visit": 2,
+          "lines": [
+            {
+              "who": "左乐",
+              "text": "整块的肉，慢火，压住，不能翻。"
+            },
+            {
+              "who": "老姜",
+              "text": "要压多久？",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "左乐",
+              "text": "压到它自己塌下去。这叫胜肉火方，从前犒军用的。"
+            },
+            {
+              "who": "余",
+              "text": "（他把火调小了两分。）",
+              "side": "right",
+              "color": "#5f9e8c"
+            },
+            {
+              "who": "左乐",
+              "text": "你这掌勺的，手上有分寸。"
+            }
+          ],
+          "effects": {
+            "unlockDish": [
+              "shengrouhuo"
+            ],
+            "affection": 8
+          }
+        },
+        {
+          "visit": 3,
+          "lines": [
+            {
+              "who": "左乐",
+              "text": "当年一锅要喂两百人。现在只喂我一个。"
+            },
+            {
+              "who": "老姜",
+              "text": "那也得喂饱。",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "左乐",
+              "text": "……说得好。添饭。"
+            }
+          ],
+          "effects": {
+            "affection": 12,
+            "regularWeight": {
+              "xunwei": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "ningciqiu",
+      "name": "宁辞秋",
+      "color": "#7f9e8c",
+      "patience": 44,
+      "pay": 2,
+      "crave": [
+        "fresh",
+        "cool",
+        "aroma"
+      ],
+      "appear": {
+        "minDay": 9,
+        "needAff": 200,
+        "weight": 2,
+        "cooldown": 3,
+        "maxVisits": 3
+      },
+      "stages": [
+        {
+          "visit": 1,
+          "lines": [
+            {
+              "who": "宁辞秋",
+              "text": "有没有清雅一些的？不要红油，不要重糖。"
+            },
+            {
+              "who": "老姜",
+              "text": "有汤，有凉菜。",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "宁辞秋",
+              "text": "那就看你们的刀工了。"
+            }
+          ]
+        },
+        {
+          "visit": 2,
+          "lines": [
+            {
+              "who": "宁辞秋",
+              "text": "豆腐切丝，入水散如菊瓣。你们试过吗？"
+            },
+            {
+              "who": "余",
+              "text": "（他把刀在布上蹭了两下。）",
+              "side": "right",
+              "color": "#5f9e8c"
+            },
+            {
+              "who": "老姜",
+              "text": "他要试了。",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "宁辞秋",
+              "text": "这道叫文思秋菊。切坏了不要紧，切到不坏为止。"
+            }
+          ],
+          "effects": {
+            "unlockDish": [
+              "wensiqiuju"
+            ],
+            "affection": 8
+          }
+        },
+        {
+          "visit": 3,
+          "lines": [
+            {
+              "who": "宁辞秋",
+              "text": "这一碗，能看见丝在水里舒展。"
+            },
+            {
+              "who": "老姜",
+              "text": "他练了很多天。",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "宁辞秋",
+              "text": "那便值了。替我谢他。"
+            }
+          ],
+          "effects": {
+            "affection": 14,
+            "regularWeight": {
+              "youke": 1.8
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "ji",
+      "name": "绩",
+      "color": "#c9962c",
+      "patience": 34,
+      "pay": 3,
+      "crave": [
+        "rich",
+        "sweet",
+        "aroma"
+      ],
+      "appear": {
+        "minDay": 11,
+        "needAff": 400,
+        "weight": 2,
+        "cooldown": 3,
+        "maxVisits": 3
+      },
+      "stages": [
+        {
+          "visit": 1,
+          "lines": [
+            {
+              "who": "绩",
+              "text": "这条街我买下三间铺子，独独没买你这间。"
+            },
+            {
+              "who": "老姜",
+              "text": "因为我不卖。",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "绩",
+              "text": "所以我来吃。上你们最贵的。"
+            }
+          ]
+        },
+        {
+          "visit": 2,
+          "lines": [
+            {
+              "who": "绩",
+              "text": "贵不是堆料，是藏。"
+            },
+            {
+              "who": "老姜",
+              "text": "藏什么？",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "绩",
+              "text": "外面看着素净，一刀切开，里头是满的。这道叫金玉藏心。"
+            },
+            {
+              "who": "余",
+              "text": "（他把方子看了三遍。）",
+              "side": "right",
+              "color": "#5f9e8c"
+            }
+          ],
+          "effects": {
+            "unlockDish": [
+              "jinyucangxin"
+            ],
+            "affection": 8
+          }
+        },
+        {
+          "visit": 3,
+          "lines": [
+            {
+              "who": "绩",
+              "text": "你们这店，值的不是铺面。"
+            },
+            {
+              "who": "老姜",
+              "text": "那是什么？",
+              "side": "right",
+              "color": "#f0b24a"
+            },
+            {
+              "who": "绩",
+              "text": "是这盏灯。这个我买不走。"
+            }
+          ],
+          "effects": {
+            "affection": 14,
+            "regularWeight": {
+              "youke": 1.6,
+              "dalisi": 1.4
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "regulars": []
+}
