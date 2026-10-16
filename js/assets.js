@@ -1,6 +1,7 @@
 const Assets = (function () {
   const DIR = 'art/';
   const ADV_DIR = 'avg/';
+  const PRELOAD_WORKERS = 24;
 
   const MANIFEST = {
 
@@ -320,7 +321,7 @@ const Assets = (function () {
         if (onProgress) onProgress(completed, urls.length);
       }
     }
-    await Promise.all(Array.from({ length: Math.min(8, urls.length) }, worker));
+    await Promise.all(Array.from({ length: Math.min(PRELOAD_WORKERS, urls.length) }, worker));
     failed.push(...urls.slice(next));
     return { failed, total: urls.length };
   }
