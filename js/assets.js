@@ -69,10 +69,8 @@ const Assets = (function () {
     },
 
     wang:    walkIdleEat(),
-    huang:   walkIdleEat(),
     jie:     walkIdleEat(),
     huaihu:  walkIdleEat(),
-    xingzhu: walkIdleEat(),
     duyaoye: walkIdleEat(),
     laoli:   walkIdleEat(),
 
@@ -167,6 +165,8 @@ const Assets = (function () {
 
   const cache = {};
   const imgCache = {};
+  const imageLoads = new Map();
+  const decodedImages = new Set();
 
   function seq(dir, count, fps) {
     const frames = [];
@@ -234,15 +234,101 @@ const Assets = (function () {
   function ready(v) { return v && v.readyState >= 2 && v.videoWidth > 0; }
 
   function image(id, file) {
-    const key = id + '/' + file;
-    if (imgCache[key]) return imgCache[key];
+    return imageUrl(DIR + id + '/' + file);
+  }
+
+  function imageUrl(url) {
+    if (imgCache[url]) return imgCache[url];
     if (typeof Image === 'undefined') return null;
     const im = new Image();
-    im.src = DIR + id + '/' + file;
-    imgCache[key] = im;
+    imgCache[url] = im;
+    im.src = url;
     return im;
   }
   function imgReady(im) { return !!(im && im.complete && im.naturalWidth > 0); }
+
+  function loadImage(url) {
+    if (decodedImages.has(url)) return Promise.resolve(true);
+    if (imageLoads.has(url)) return imageLoads.get(url);
+    const task = new Promise(resolve => {
+      const im = imageUrl(url);
+      if (!im) { resolve(false); return; }
+      let settled = false, decoding = false;
+      const finish = ok => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        im.removeEventListener('load', loaded);
+        im.removeEventListener('error', failed);
+        if (ok) decodedImages.add(url);
+        else if (imgCache[url] === im) delete imgCache[url];
+        resolve(ok);
+      };
+      const loaded = () => {
+        if (decoding || settled) return;
+        decoding = true;
+        if (!imgReady(im)) { finish(false); return; }
+        if (typeof im.decode === 'function') im.decode().then(() => finish(true), () => finish(false));
+        else finish(true);
+      };
+      const failed = () => finish(false);
+      const timeout = setTimeout(failed, 20000);
+      im.addEventListener('load', loaded);
+      im.addEventListener('error', failed);
+      if (im.complete) loaded();
+    });
+    imageLoads.set(url, task);
+    task.then(() => imageLoads.delete(url));
+    return task;
+  }
+
+  function gameImages() {
+    const urls = [DIR + 'scene/' + (typeof MANIFEST.scene === 'string' ? MANIFEST.scene : MANIFEST.scene.file)];
+    MANIFEST.dishes.forEach(id => urls.push(DIR + 'dish/' + id + '.png'));
+    Object.keys(MANIFEST).forEach(id => {
+      const m = MANIFEST[id];
+      if (!m || !m.walk) return;
+      const entries = Object.values(m.walk).concat([m.idle, m.eat, m.cook]);
+      entries.filter(Boolean).forEach(entry => {
+        const files = typeof entry === 'string' ? [entry] : (entry.frames || []);
+        files.forEach(file => urls.push(DIR + id + '/' + file));
+      });
+    });
+    return Array.from(new Set(urls));
+  }
+
+  function storyImages(lines) {
+    const urls = [DIR + 'scene/58_g1_yusrestaurant.png'];
+    (lines || []).forEach(l => {
+      if (l.noPortrait || !l.who) return;
+      if (l.portrait) urls.push(l.portrait);
+      else if (l.char && hasPortrait(l.char)) urls.push(portraitUrl(l.char, l.look));
+    });
+    return Array.from(new Set(urls));
+  }
+
+  async function preload(urls, onProgress) {
+    let completed = 0, next = 0, consecutiveFailures = 0;
+    const failed = [];
+    if (onProgress) onProgress(0, urls.length);
+    async function worker() {
+      while (next < urls.length && consecutiveFailures < 8) {
+        const url = urls[next++];
+        if (await loadImage(url)) consecutiveFailures = 0;
+        else { failed.push(url); consecutiveFailures++; }
+        completed++;
+        if (onProgress) onProgress(completed, urls.length);
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(8, urls.length) }, worker));
+    failed.push(...urls.slice(next));
+    return { failed, total: urls.length };
+  }
+
+  function gameReady() { return gameImages().every(url => decodedImages.has(url)); }
+  function storyReady(lines) { return storyImages(lines).every(url => decodedImages.has(url)); }
+  function preloadGame(onProgress) { return preload(gameImages(), onProgress); }
+  function preloadStory(lines, onProgress) { return preload(storyImages(lines), onProgress); }
 
   function entryFrames(id, entry) {
     const files = (typeof entry === 'string') ? [entry] : (entry && entry.frames || []);
@@ -293,5 +379,6 @@ const Assets = (function () {
     return (MANIFEST.dishes && MANIFEST.dishes.indexOf(id) >= 0) ? image('dish', id + '.png') : null;
   }
 
-  return { DIR, ADV_DIR, MANIFEST, has, hasPortrait, hasLook, portraitUrl, spriteUrl, sprite, ready, image, imgReady, anim, walk, scene, sceneRect, dishImg };
+  return { DIR, ADV_DIR, MANIFEST, has, hasPortrait, hasLook, portraitUrl, spriteUrl, sprite, ready, image, imgReady, anim, walk, scene, sceneRect, dishImg,
+    gameReady, storyReady, preloadGame, preloadStory };
 })();

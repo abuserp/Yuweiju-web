@@ -5,6 +5,7 @@ const Night = (function () {
   let firstPaint = true;
   let cart = {};
   let view = 'settle';
+  const lastPress = new Map();
 
   function init(el) { root = el; }
 
@@ -12,6 +13,7 @@ const Night = (function () {
     firstPaint = true;
     view = 'settle';
     cart = {};
+    lastPress.clear();
     lastStats = stats;
     line = openingLine();
     State.spoil();
@@ -145,15 +147,19 @@ const Night = (function () {
         : `<span class="shelf">保鲜 ${ing.shelf} 天</span>`;
       html += `
       <div class="stock-row">
+        <div class="stock-info">
         <i class="swatch" style="background:${ing.color}"></i>
         <span class="nm">${ing.name}</span>
-        <span class="pc">${ing.price}</span>
+        <span class="pc">${ing.price} / 份</span>
         <span class="have">现有 ${State.count(k)}</span>
-        <button data-cart="${k}" data-n="-1" ${want ? '' : 'disabled'}>−</button>
-        <span class="qty ${want ? 'want' : ''}">${want}</span>
-        <button data-cart="${k}" data-n="1">+</button>
-        <button data-cart="${k}" data-n="5" class="wide">+5</button>
         ${shelfTag}
+        </div>
+        <div class="stock-controls">
+        <button data-cart="${k}" data-n="-1" aria-label="减少${ing.name}一份" ${want ? '' : 'disabled'}>−</button>
+        <span class="qty ${want ? 'want' : ''}">${want}</span>
+        <button data-cart="${k}" data-n="1" aria-label="增加${ing.name}一份">+</button>
+        <button data-cart="${k}" data-n="5" class="wide" aria-label="增加${ing.name}五份">+5</button>
+        </div>
       </div>`;
     });
     const afford = cartCost <= s.money;
@@ -222,15 +228,15 @@ const Night = (function () {
     bind();
   }
 
-  function pressAction(btn, fn) {
-    let byPointer = false;
-    btn.onpointerdown = e => {
-      if (e.button > 0) return;
-      byPointer = true;
-      fn();
+  function pressAction(btn, key, fn) {
+    btn.onkeydown = e => {
+      if (e.repeat && (e.key === 'Enter' || e.key === ' ')) e.preventDefault();
     };
     btn.onclick = () => {
-      if (byPointer) { byPointer = false; return; }
+      if (btn.disabled) return;
+      const now = performance.now();
+      if (now - (lastPress.get(key) ?? -Infinity) < 300) return;
+      lastPress.set(key, now);
       fn();
     };
   }
@@ -238,7 +244,7 @@ const Night = (function () {
   function bind() {
 
     root.querySelectorAll('[data-cart]').forEach(b => {
-      pressAction(b, () => {
+      pressAction(b, 'cart:' + b.dataset.cart + ':' + b.dataset.n, () => {
         const k = b.dataset.cart;
         const n = parseInt(b.dataset.n, 10);
         cart[k] = Math.max(0, (cart[k] || 0) + n);
@@ -250,13 +256,17 @@ const Night = (function () {
     const clear = root.querySelector('#cart-clear');
     if (clear) clear.onclick = () => { cart = {}; Sfx.play('ui.cancel'); render(); };
     const buy = root.querySelector('#cart-buy');
-    if (buy) buy.onclick = () => {
-      Object.keys(cart).forEach(k => State.buy(k, cart[k]));
+    if (buy) pressAction(buy, 'buy', () => {
+      const items = Object.keys(cart);
+      const cost = items.reduce((sum, k) => sum + cart[k] * GameData.ING[k].price, 0);
+      if (!items.length || cost > State.s.money) return;
+      buy.disabled = true;
+      items.forEach(k => State.buy(k, cart[k]));
       cart = {};
       Sfx.play('shop.buy');
       State.save();
       render();
-    };
+    });
     root.querySelectorAll('[data-dish]').forEach(b => {
       b.onclick = () => {
         const id = b.dataset.dish;
@@ -276,9 +286,9 @@ const Night = (function () {
       render();
     };
     const slotBtn = root.querySelector('#buy-slot');
-    if (slotBtn) slotBtn.onclick = () => {
+    if (slotBtn) pressAction(slotBtn, 'slot', () => {
       if (State.buySlot()) { Sfx.play('shop.buy'); State.save(); render(); }
-    };
+    });
     const go = root.querySelector('#open-shop');
     if (go) go.onclick = () => { Game.toDay(); };
   }

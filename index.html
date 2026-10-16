@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>余味居</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=1.0.1">
 </head>
 <body>
 
@@ -14,6 +14,17 @@
     <h1>余味居</h1>
     <p>做饭不一定要有灶台，一口锅，一把火，也能烧出一手好菜。<br>但有了灶台，就会有常客，就会有挂念。</p>
   </header>
+
+  <section id="loading" class="panel loading" aria-labelledby="loading-title" hidden>
+    <h2 id="loading-title">正在准备开张</h2>
+    <p id="loading-message" role="status" aria-live="polite">正在加载场景与角色，请稍候。</p>
+    <progress id="loading-progress" max="1" value="0" aria-label="资源加载进度"></progress>
+    <p id="loading-count" class="hint"></p>
+    <div class="title-actions">
+      <button id="loading-retry" class="primary" hidden>重新加载</button>
+      <button id="loading-back" hidden>返回</button>
+    </div>
+  </section>
 
   <div id="title" class="panel">
     <div class="rules">
@@ -74,14 +85,15 @@
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
 <script src="js/audio.js"></script>
-<script src="js/assets.js"></script>
+<script src="js/assets.js?v=1.0.1"></script>
 <script src="js/mods.js"></script>
 <script src="js/packs/yan.js"></script>
 <script src="js/adv.js"></script>
 <script src="js/recall.js"></script>
 <script src="js/render.js"></script>
 <script src="js/day.js"></script>
-<script src="js/night.js"></script>
-<script src="js/main.js"></script>
+<script src="js/night.js?v=1.0.1"></script>
+<script src="js/main.js?v=1.0.1"></script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "af0c59bd33584bb7b1082c8e528c570b"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

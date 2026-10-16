@@ -52,6 +52,7 @@ function checkDeps() {
     ['GameData.pickCravings', () => typeof GameData.pickCravings === 'function', 'js/data.js'],
     ['State.availableAttrs',() => typeof State.availableAttrs === 'function','js/state.js'],
     ['Assets.portraitUrl',  () => typeof Assets.portraitUrl === 'function',  'js/assets.js'],
+    ['Assets.preloadGame',  () => typeof Assets.preloadGame === 'function',  'js/assets.js'],
     ['Render.setPaused',    () => typeof Render.setPaused === 'function',    'js/render.js'],
     ['Day.hitCount',        () => typeof Day.hitCount === 'function',        'js/day.js'],
     ['Night.open',          () => typeof Night.open === 'function',          'js/night.js']
@@ -71,6 +72,7 @@ const Game = (function () {
   const keys = { up: false, down: false, left: false, right: false };
   let stick = null;
   let paused = false;
+  let loading = false;
 
   const el = {};
 
@@ -85,6 +87,13 @@ const Game = (function () {
     el.modList = document.getElementById('mod-list');
     el.modMsg = document.getElementById('mod-msg');
     el.recall = document.getElementById('recall');
+    el.loading = document.getElementById('loading');
+    el.loadingTitle = document.getElementById('loading-title');
+    el.loadingMessage = document.getElementById('loading-message');
+    el.loadingProgress = document.getElementById('loading-progress');
+    el.loadingCount = document.getElementById('loading-count');
+    el.loadingRetry = document.getElementById('loading-retry');
+    el.loadingBack = document.getElementById('loading-back');
     el.day = document.getElementById('hud-day');
     el.clock = document.getElementById('hud-clock');
     el.money = document.getElementById('hud-money');
@@ -108,9 +117,9 @@ const Game = (function () {
     bindMods();
 
     document.getElementById('btn-new').onclick =
-      safe('新开一家', () => { State.reset(); State.save(); toNight(null); });
+      safe('新开一家', () => prepareGame(() => { State.reset(); State.save(); toNight(null); }));
     const cont = document.getElementById('btn-continue');
-    if (State.load()) { cont.disabled = false; cont.onclick = safe('接着上次', () => toNight(null)); }
+    if (State.load()) { cont.disabled = false; cont.onclick = safe('接着上次', () => prepareGame(() => toNight(null))); }
     else { cont.disabled = true; }
     document.getElementById('btn-wipe').onclick = () => { State.clear(); location.reload(); };
     const recallBtn = document.getElementById('btn-recall');
@@ -147,7 +156,8 @@ const Game = (function () {
   function show(p) {
     phase = p;
 
-    if (p !== 'adv') Bgm.play(p);
+    if (p !== 'adv' && p !== 'loading') Bgm.play(p);
+    el.loading.hidden = p !== 'loading';
     el.title.hidden = p !== 'title';
     el.night.hidden = p !== 'night';
     el.adv.hidden = p !== 'adv';
@@ -159,13 +169,14 @@ const Game = (function () {
 
     if (stats && stats.event) {
       const ev = stats.event;
-      stats.event = null;
-      show('adv');
-
-      ADV.play(ev.lines, () => {
-        if (ev.count) Mods.completeVisit(ev.defId, ev.stage);
-        toNight(stats);
-      });
+      prepareStory(ev.lines, () => {
+        stats.event = null;
+        show('adv');
+        ADV.play(ev.lines, () => {
+          if (ev.count) Mods.completeVisit(ev.defId, ev.stage);
+          toNight(stats);
+        });
+      }, false);
       return;
     }
     if (stats) {
@@ -185,11 +196,70 @@ const Game = (function () {
   }
 
   function playPreview(lines) {
-    show('adv');
-    ADV.play(lines, () => show('title'), { preview: true });
+    prepareStory(lines, () => {
+      show('adv');
+      ADV.play(lines, () => show('title'), { preview: true });
+    });
   }
 
-  const toDay = safe('开门营业', function () {
+  function loadThen(title, load, done, canGoBack = true) {
+    if (loading) return;
+    loading = true;
+    const previous = phase;
+    show('loading');
+    el.loadingTitle.textContent = title;
+    el.loadingBack.onclick = () => {
+      loading = false;
+      show(previous);
+    };
+    let attempting = false;
+    const attempt = async () => {
+      if (attempting) return;
+      attempting = true;
+      el.loadingRetry.hidden = true;
+      el.loadingBack.hidden = true;
+      el.loadingMessage.textContent = '正在加载画面，请稍候。首次进入需要一点时间。';
+      el.loadingProgress.value = 0;
+      el.loadingCount.textContent = '';
+      let result;
+      try {
+        result = await load((completed, total) => {
+          el.loadingProgress.max = total || 1;
+          el.loadingProgress.value = completed;
+          el.loadingCount.textContent = completed + ' / ' + total;
+        });
+      } catch (err) {
+        console.warn('资源加载失败', err);
+        result = { failed: ['load'] };
+      }
+      attempting = false;
+      if (result.failed.length) {
+        el.loadingMessage.textContent = '有 ' + result.failed.length + ' 张图片未能加载，请检查网络后重试。已加载的图片会保留。';
+        el.loadingRetry.hidden = false;
+        // 营业结束后的剧情必须完成，不能退回已结束的白天。
+        el.loadingBack.hidden = !canGoBack;
+        return;
+      }
+      loading = false;
+      safe('进入游戏', done)();
+    };
+    el.loadingRetry.onclick = attempt;
+    attempt();
+  }
+
+  function prepareGame(done) {
+    if (loading) return;
+    if (Assets.gameReady()) { done(); return; }
+    loadThen('正在准备开张', Assets.preloadGame, done);
+  }
+
+  function prepareStory(lines, done, canGoBack = true) {
+    if (Assets.storyReady(lines)) { done(); return; }
+    loadThen('正在准备故事', progress => Assets.preloadStory(lines, progress), done, canGoBack);
+  }
+
+  const toDay = safe('开门营业', () => prepareGame(startDay));
+  function startDay() {
     Sfx.play('shop.open');
     paused = false;
     Render.setPaused(false);
@@ -197,7 +267,7 @@ const Game = (function () {
     Day.start();
     show('day');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+  }
 
   function bindKeys() {
     const map = {
