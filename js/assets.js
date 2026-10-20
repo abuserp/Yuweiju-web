@@ -212,7 +212,7 @@ const Assets = (function () {
 
   function portraitUrl(id, look) {
     const file = hasLook(id, look) ? look : defaultLook(id);
-    return ADV_DIR + id + '/' + encodeURIComponent(file) + '.png';
+    return ADV_DIR + id + '/' + encodeURIComponent(file) + '.webp';
   }
   function spriteUrl(id, action) { return DIR + id + '/' + action + '.webm'; }
 
@@ -308,7 +308,7 @@ const Assets = (function () {
     return Array.from(new Set(urls));
   }
 
-  async function preload(urls, onProgress) {
+  async function preload(urls, onProgress, workers = PRELOAD_WORKERS) {
     let completed = 0, next = 0, consecutiveFailures = 0;
     const failed = [];
     if (onProgress) onProgress(0, urls.length);
@@ -321,7 +321,7 @@ const Assets = (function () {
         if (onProgress) onProgress(completed, urls.length);
       }
     }
-    await Promise.all(Array.from({ length: Math.min(PRELOAD_WORKERS, urls.length) }, worker));
+    await Promise.all(Array.from({ length: Math.min(workers, urls.length) }, worker));
     failed.push(...urls.slice(next));
     return { failed, total: urls.length };
   }
@@ -330,6 +330,7 @@ const Assets = (function () {
   function storyReady(lines) { return storyImages(lines).every(url => decodedImages.has(url)); }
   function preloadGame(onProgress) { return preload(gameImages(), onProgress); }
   function preloadStory(lines, onProgress) { return preload(storyImages(lines), onProgress); }
+  function prefetchStory(lines) { return preload(storyImages(lines), null, 4); }
 
   function entryFrames(id, entry) {
     const files = (typeof entry === 'string') ? [entry] : (entry && entry.frames || []);
@@ -381,5 +382,5 @@ const Assets = (function () {
   }
 
   return { DIR, ADV_DIR, MANIFEST, has, hasPortrait, hasLook, portraitUrl, spriteUrl, sprite, ready, image, imgReady, anim, walk, scene, sceneRect, dishImg,
-    gameReady, storyReady, preloadGame, preloadStory };
+    gameReady, storyReady, preloadGame, preloadStory, prefetchStory };
 })();

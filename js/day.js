@@ -64,6 +64,8 @@ const Day = (function () {
     d.player = { x: door.x, y: (State.map.h - 2.5) * T, r: 15, carry: null, face: 'down', still: 0 };
     const kx = State.kitchenCenter();
     d.yu = { x: kx, y: 1.5 * T, cooking: null, progress: 0, home: kx, slot: 0 };
+    const story = def && Mods.stageFor(def);
+    if (story && story.lines.length) Assets.prefetchStory(story.lines).catch(() => {});
   }
 
   function update(dt, vec) {

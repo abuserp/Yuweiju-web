@@ -53,7 +53,7 @@ const Recall = (function () {
         <div class="recall-portrait-box" id="recall-portrait"></div>
         <div class="recall-browse-bar">
           <button id="browse-prev" ${looks.length <= 1 ? 'disabled' : ''}>‹</button>
-          <span class="recall-file">${browseIdx + 1}/${looks.length} · ${look}.png</span>
+          <span class="recall-file">${browseIdx + 1}/${looks.length} · ${look}.webp</span>
           <button id="browse-next" ${looks.length <= 1 ? 'disabled' : ''}>›</button>
         </div>
       </div>`;
