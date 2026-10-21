@@ -18,5 +18,7 @@ stages 按到访顺序定义剧情；lines 是台词，effects 是完成接待�
 ----
 Q 版帧序列位于 art/<素材 id>/，在 js/assets.js 的 MANIFEST 中登记。
 双人客人用 sprites 数组按 members 的顺序指定素材 id。
-内置对话立绘使用 WebP，位于 avg/<角色目录>/；台词用 char 指定角色目录，look 指定不含扩展名的差分名。
+内置对话立绘使用共用底图和表情图，位于 avg/<角色目录>/，合成坐标登记在 js/portrait-layers.js。
+台词仍用 char 指定角色目录，look 指定原来的差分名（不含扩展名），不需要填写底图或表情图文件名。
+旧数据包直接指定 avg/ 下内置 PNG、WebP 立绘路径时，也会自动使用对应的分层资源。
 自定义图片也可以用 portrait 直接指定 PNG、WebP 等图片路径。路径及文件名大小写须与实际文件一致。

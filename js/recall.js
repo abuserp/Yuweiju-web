@@ -53,7 +53,7 @@ const Recall = (function () {
         <div class="recall-portrait-box" id="recall-portrait"></div>
         <div class="recall-browse-bar">
           <button id="browse-prev" ${looks.length <= 1 ? 'disabled' : ''}>‹</button>
-          <span class="recall-file">${browseIdx + 1}/${looks.length} · ${look}.webp</span>
+          <span class="recall-file">${browseIdx + 1}/${looks.length} · ${look}</span>
           <button id="browse-next" ${looks.length <= 1 ? 'disabled' : ''}>›</button>
         </div>
       </div>`;
@@ -67,7 +67,7 @@ const Recall = (function () {
       const looks = portraitLooks(browseId);
       const look = looks[Math.min(browseIdx, looks.length - 1)];
       const box = root.querySelector('#recall-portrait');
-      box.innerHTML = '<img src="' + Assets.portraitUrl(browseId, look) + '" alt="">';
+      Assets.paintPortrait(box, { char: browseId, look });
     }
   }
 

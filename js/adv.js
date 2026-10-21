@@ -38,7 +38,7 @@ const ADV = (function () {
     el.choices = root.querySelector('#adv-choices');
     el.next = root.querySelector('#adv-next');
     root.addEventListener('click', e => {
-      if (e.target.closest('.adv-choices')) return;
+      if (e.target.closest('.adv-choices, .portrait-view button')) return;
       advance();
     });
   }
@@ -94,14 +94,8 @@ const ADV = (function () {
       el.portraitInner.style.background = 'transparent';
       el.portraitInner.innerHTML = '';
     } else if (l.portrait || (l.char && Assets.hasPortrait(l.char))) {
-      const src = l.portrait || Assets.portraitUrl(l.char, l.look);
       el.portraitInner.style.background = 'transparent';
-
-      const fbColor = l.color || '#3a3f4a', fbName = (l.who || '').replace(/'/g, "\\'");
-      el.portraitInner.innerHTML = '<img src="' + src + '" alt="" onerror="' +
-        "this.parentNode.style.background='" + fbColor + "';" +
-        "this.parentNode.innerHTML='<span>" + fbName + "</span>';" +
-        '">';
+      Assets.paintPortrait(el.portraitInner, l);
     } else {
 
       el.portraitInner.style.background = l.color || '#3a3f4a';

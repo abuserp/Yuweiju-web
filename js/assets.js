@@ -210,9 +210,70 @@ const Assets = (function () {
     return (ls && ls[0]) || 'normal';
   }
 
-  function portraitUrl(id, look) {
+  function portraitPlan(line) {
+    let key;
+    if (line.portrait) {
+      try {
+        const match = decodeURIComponent(line.portrait).match(/^(?:\.\/)?avg\/([^/]+)\/([^/?]+)\.(?:png|webp)(?:\?.*)?$/i);
+        if (match) key = match[1] + '/' + match[2];
+      } catch (err) {}
+    } else {
+      const id = line.char, look = line.look;
+      key = id + '/' + (hasLook(id, look) ? look : defaultLook(id));
+    }
+    const entry = typeof PORTRAIT_LAYERS !== 'undefined' && PORTRAIT_LAYERS.looks[key];
+    if (entry) return { ...PORTRAIT_LAYERS.groups[entry.group], rect: entry.rect, source: entry.source };
+    if (line.portrait) return { base: line.portrait };
+    const id = line.char, look = line.look;
     const file = hasLook(id, look) ? look : defaultLook(id);
-    return ADV_DIR + id + '/' + encodeURIComponent(file) + '.webp';
+    return { base: ADV_DIR + id + '/' + encodeURIComponent(file) + '.webp' };
+  }
+
+  function portraitImages(line) {
+    const plan = portraitPlan(line);
+    return plan.rect ? [plan.base, plan.atlas] : [plan.base];
+  }
+
+  function paintPortrait(container, line) {
+    const plan = portraitPlan(line), urls = portraitImages(line);
+    const view = document.createElement('span');
+    view.className = 'portrait-view';
+    container.replaceChildren(view);
+    const draw = () => {
+      const base = imageUrl(plan.base);
+      const canvas = document.createElement('canvas');
+      canvas.className = 'portrait-image';
+      canvas.width = plan.width || base.naturalWidth;
+      canvas.height = plan.height || base.naturalHeight;
+      canvas.setAttribute('role', 'img');
+      canvas.setAttribute('aria-label', line.who || line.char || '立绘');
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(base, 0, 0);
+      if (plan.rect) {
+        const [x, y, w, h] = plan.rect, [sx, sy] = plan.source;
+        ctx.clearRect(x, y, w, h);
+        ctx.drawImage(imageUrl(plan.atlas), sx, sy, w, h, x, y, w, h);
+      }
+      view.replaceChildren(canvas);
+    };
+    const retry = () => {
+      if (container.firstChild !== view) return;
+      view.textContent = '';
+      const button = document.createElement('button');
+      button.textContent = '重试立绘';
+      button.onclick = e => { e.stopPropagation(); load(); };
+      view.replaceChildren(button);
+    };
+    const load = () => {
+      view.textContent = '立绘加载中…';
+      preload(urls, null, 4).then(result => {
+        if (container.firstChild !== view) return;
+        if (result.failed.length) retry();
+        else draw();
+      }).catch(retry);
+    };
+    if (urls.every(url => decodedImages.has(url))) draw();
+    else load();
   }
   function spriteUrl(id, action) { return DIR + id + '/' + action + '.webm'; }
 
@@ -302,8 +363,7 @@ const Assets = (function () {
     const urls = [DIR + 'scene/58_g1_yusrestaurant.png'];
     (lines || []).forEach(l => {
       if (l.noPortrait || !l.who) return;
-      if (l.portrait) urls.push(l.portrait);
-      else if (l.char && hasPortrait(l.char)) urls.push(portraitUrl(l.char, l.look));
+      if (l.portrait || (l.char && hasPortrait(l.char))) urls.push(...portraitImages(l));
     });
     return Array.from(new Set(urls));
   }
@@ -381,6 +441,6 @@ const Assets = (function () {
     return (MANIFEST.dishes && MANIFEST.dishes.indexOf(id) >= 0) ? image('dish', id + '.png') : null;
   }
 
-  return { DIR, ADV_DIR, MANIFEST, has, hasPortrait, hasLook, portraitUrl, spriteUrl, sprite, ready, image, imgReady, anim, walk, scene, sceneRect, dishImg,
+  return { DIR, ADV_DIR, MANIFEST, has, hasPortrait, hasLook, portraitPlan, portraitImages, paintPortrait, spriteUrl, sprite, ready, image, imgReady, anim, walk, scene, sceneRect, dishImg,
     gameReady, storyReady, preloadGame, preloadStory, prefetchStory };
 })();
