@@ -55,6 +55,7 @@ function checkDeps() {
     ['Assets.preloadGame',  () => typeof Assets.preloadGame === 'function',  'js/assets.js'],
     ['Render.setPaused',    () => typeof Render.setPaused === 'function',    'js/render.js'],
     ['Day.hitCount',        () => typeof Day.hitCount === 'function',        'js/day.js'],
+    ['Day.interaction',     () => typeof Day.interaction === 'function',     'js/day.js'],
     ['Night.open',          () => typeof Night.open === 'function',          'js/night.js']
   ];
   const bad = [];
@@ -73,6 +74,8 @@ const Game = (function () {
   let stick = null;
   let paused = false;
   let loading = false;
+  let lastInteraction = -Infinity;
+  let inputEpoch = 0;
 
   const el = {};
 
@@ -127,7 +130,8 @@ const Game = (function () {
     el.pause = document.getElementById('btn-pause') || makePauseBtn();
     if (el.pause) el.pause.onclick = safe('暂停', () => togglePause());
 
-    document.getElementById('btn-act').onclick = safe('交互', () => { if (!paused) Day.interact(); });
+    el.act = document.getElementById('btn-act');
+    el.act.onclick = safe('交互', requestInteraction);
     document.getElementById('btn-toss').onclick = safe('倒掉', () => { if (!paused) Day.discard(); });
 
     show('title');
@@ -146,15 +150,37 @@ const Game = (function () {
   function togglePause(on) {
     if (phase !== 'day') return;
     paused = on == null ? !paused : !!on;
+    inputEpoch++;
+    stick = null;
     Sfx.play(paused ? 'ui.pause' : 'ui.resume');
     if (paused) Sfx.stopAll();
     Bgm.duck(paused);
     Render.setPaused(paused);
     if (el.pause) el.pause.textContent = paused ? '继续' : '暂停';
+    updateActionButton();
+  }
+
+  function requestInteraction() {
+    if (phase !== 'day' || paused || !Day.interaction()) return;
+    const now = performance.now();
+    if (now - lastInteraction < 300) return;
+    lastInteraction = now;
+    stick = null;
+    Day.interact();
+    updateActionButton();
+  }
+
+  function updateActionButton() {
+    if (!el.act) return;
+    const action = phase === 'day' && !paused && Day.interaction();
+    el.act.disabled = !action;
+    el.act.textContent = action ? action.label : (paused ? '已暂停' : Day.d.panel ? '选择菜品' : '靠近后交互');
   }
 
   function show(p) {
     phase = p;
+    inputEpoch++;
+    stick = null;
 
     if (p !== 'adv' && p !== 'loading') Bgm.play(p);
     el.loading.hidden = p !== 'loading';
@@ -164,6 +190,7 @@ const Game = (function () {
     el.canvas.hidden = p !== 'day';
     el.hud.hidden = p !== 'day';
     el.pad.hidden = p !== 'day';
+    updateActionButton();
   }
   function toNight(stats) {
 
@@ -265,6 +292,7 @@ const Game = (function () {
     Render.setPaused(false);
     if (el.pause) el.pause.textContent = '暂停';
     Day.start();
+    lastInteraction = -Infinity;
     show('day');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -284,7 +312,7 @@ const Game = (function () {
       }
       if (phase !== 'day') return;
       if (paused) return;
-      if (e.code === 'Space' || e.code === 'KeyE') { Day.interact(); e.preventDefault(); }
+      if (e.code === 'Space' || e.code === 'KeyE') { if (!e.repeat) requestInteraction(); e.preventDefault(); }
       if (e.code === 'KeyQ') Day.discard();
       if (e.code === 'Escape') Day.closePanel();
       if (e.code.indexOf('Digit') === 0) {
@@ -301,32 +329,69 @@ const Game = (function () {
 
   function bindTouch() {
     const cv = el.canvas;
+    let gesture = null;
+    const pointers = new Set();
     const toCanvas = e => {
       const r = cv.getBoundingClientRect();
       return { x: (e.clientX - r.left) * cv.width / r.width, y: (e.clientY - r.top) * cv.height / r.height };
     };
 
     cv.addEventListener('pointerdown', e => {
-      if (phase !== 'day' || paused) return;
-      const p = toCanvas(e);
-      if (Day.d.panel) {
-        const i = Render.hitPanel(p.x, p.y);
-        if (i >= 0) Day.choose(i); else { Day.closePanel(); Sfx.play('ui.cancel'); }
+      if (phase !== 'day' || paused || (e.button != null && e.button !== 0)) return;
+      pointers.add(e.pointerId);
+      cv.setPointerCapture(e.pointerId);
+      if (pointers.size > 1 || e.isPrimary === false) {
+        if (gesture) gesture.cancelled = true;
+        stick = null;
         return;
       }
-      cv.setPointerCapture(e.pointerId);
-      stick = { id: e.pointerId, ox: p.x, oy: p.y, x: p.x, y: p.y };
-      e.preventDefault();
-    });
-    cv.addEventListener('pointermove', e => {
-      if (!stick || e.pointerId !== stick.id) return;
       const p = toCanvas(e);
-      stick.x = p.x; stick.y = p.y;
+      gesture = { id: e.pointerId, ox: p.x, oy: p.y, x: p.x, y: p.y,
+        clientX: e.clientX, clientY: e.clientY, started: performance.now(),
+        panel: Day.d.panel, epoch: inputEpoch, dragged: false, cancelled: false };
+      stick = gesture.panel ? null : gesture;
       e.preventDefault();
     });
-    const drop = e => { if (stick && e.pointerId === stick.id) stick = null; };
-    cv.addEventListener('pointerup', drop);
+    function track(e) {
+      const p = toCanvas(e);
+      gesture.x = p.x; gesture.y = p.y;
+      if (Math.hypot(e.clientX - gesture.clientX, e.clientY - gesture.clientY) > 8 ||
+          Math.hypot(p.x - gesture.ox, p.y - gesture.oy) >= 8) gesture.dragged = true;
+      return p;
+    }
+    cv.addEventListener('pointermove', e => {
+      if (!gesture || e.pointerId !== gesture.id) return;
+      track(e);
+      e.preventDefault();
+    });
+    cv.addEventListener('pointerup', e => {
+      pointers.delete(e.pointerId);
+      if (!gesture || e.pointerId !== gesture.id) return;
+      const p = track(e), g = gesture;
+      const validStick = stick === g;
+      gesture = null;
+      stick = null;
+      e.preventDefault();
+      const now = performance.now();
+      if (phase !== 'day' || paused || g.epoch !== inputEpoch || g.cancelled || g.dragged) return;
+      if (g.panel) {
+        if (Day.d.panel !== g.panel || now - lastInteraction < 300) return;
+        const i = Render.hitPanel(p.x, p.y);
+        if (i !== Render.hitPanel(g.ox, g.oy)) return;
+        lastInteraction = now;
+        if (i >= 0) Day.choose(i); else { Day.closePanel(); Sfx.play('ui.cancel'); }
+        updateActionButton();
+      } else if (validStick && now - g.started <= 280 && !Day.d.panel && g.ox < cv.width / 2 && p.x < cv.width / 2) {
+        requestInteraction();
+      }
+    });
+    const drop = e => {
+      pointers.delete(e.pointerId);
+      if (gesture && e.pointerId === gesture.id) { gesture = null; stick = null; }
+    };
     cv.addEventListener('pointercancel', drop);
+    cv.addEventListener('lostpointercapture', drop);
+    window.addEventListener('blur', () => { gesture = null; pointers.clear(); stick = null; });
     cv.addEventListener('contextmenu', e => e.preventDefault());
   }
 
@@ -374,6 +439,7 @@ const Game = (function () {
 
   function inputVector() {
     if (stick) {
+      if (!stick.dragged) return { x: 0, y: 0 };
       const dx = stick.x - stick.ox, dy = stick.y - stick.oy;
       const len = Math.hypot(dx, dy);
       if (len < 8) return { x: 0, y: 0 };
@@ -411,6 +477,7 @@ const Game = (function () {
   }
 
   function hud() {
+    updateActionButton();
     const d = Day.d, s = State.s;
     el.day.textContent = '第 ' + s.day + ' 天';
     el.clock.textContent = (d.timeLeft > 0 ? Math.ceil(d.timeLeft) + ' 秒' : '打烊中');

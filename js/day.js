@@ -511,23 +511,34 @@ const Day = (function () {
       Math.hypot(d.window.x - d.player.x, d.window.y - d.player.y) < C.reach;
   }
 
-  function interact() {
-    if (!d.running || d.panel) return;
+  function interaction() {
+    if (!d.running || d.panel || !d.player) return null;
     const p = d.player;
     if (p.carry) {
-
       const g = bestTarget(p.carry);
-      if (g) { serve(g, p.carry.dishId); return; }
-      float(p.x, p.y - 30, '端着 ' + GameData.dish(p.carry.dishId).name, '#e0d6c0');
-      return;
+      return g ? { kind: 'serve', label: '上菜', guest: g, x: g.x, y: g.y + 16 } : null;
     }
-    if (nearHatch()) { p.carry = d.hatch.shift(); Sfx.play('plate.pick'); return; }
+    if (nearHatch()) return { kind: 'hatch', label: '取外卖', ...hatchSlotPos(0) };
     const slot = nearestReady(p);
-    if (slot >= 0) { p.carry = d.ready.splice(slot, 1)[0]; Sfx.play('plate.pick'); return; }
-
+    if (slot >= 0) {
+      const pos = readySlotPos(slot);
+      return { kind: 'ready', label: '取餐', slot, x: pos.x + 8, y: pos.y + 6 };
+    }
     const g = nearestAtTable(d.guests.filter(x => x.state === 'seated'))
            || nearestAtTable(d.guests.filter(x => x.state === 'waiting'));
-    if (g) openPanel(g);
+    return g ? { kind: 'order', label: g.order ? '改单' : '点单', guest: g, x: g.x, y: g.y + 16 } : null;
+  }
+
+  function interact() {
+    const action = interaction();
+    if (!action) return;
+    const p = d.player;
+    if (action.kind === 'serve') serve(action.guest, p.carry.dishId);
+    else if (action.kind === 'order') openPanel(action.guest);
+    else {
+      p.carry = action.kind === 'hatch' ? d.hatch.shift() : d.ready.splice(action.slot, 1)[0];
+      Sfx.play('plate.pick');
+    }
   }
 
   function hitCount(dishId, g) {
@@ -784,8 +795,9 @@ const Day = (function () {
   function updateHint() {
     const p = d.player;
     if (d.panel) { d.hint = '按数字键或直接点，Esc 取消'; return; }
+    const action = interaction();
     if (p.carry) {
-      const g = bestTarget(p.carry);
+      const g = action && action.guest;
       const dish = GameData.dish(p.carry.dishId);
       if (g) {
         const h = hitCount(p.carry.dishId, g);
@@ -794,11 +806,8 @@ const Day = (function () {
       else d.hint = '端着' + dish.name + '，找想吃' + dish.attrs.map(GameData.attrName).join('或') + '的客人';
       return;
     }
-    if (nearHatch()) { d.hint = '取外卖'; return; }
-    if (nearestReady(p) >= 0) { d.hint = '取餐'; return; }
-    const g = nearestAtTable(d.guests.filter(x => x.state === 'seated'))
-           || nearestAtTable(d.guests.filter(x => x.state === 'waiting'));
-    d.hint = g ? (g.order ? '改单（他已经点过 ' + GameData.dish(g.order).name + '）' : '点单') : '';
+    d.hint = action ? (action.kind === 'order' && action.guest.order
+      ? '改单（他已经点过 ' + GameData.dish(action.guest.order).name + '）' : action.label) : '';
   }
 
   function end() {
@@ -812,5 +821,5 @@ const Day = (function () {
     Game.toNight(d.stats);
   }
 
-  return { d: d, start, update, interact, discard, choose, closePanel, readySlotPos, hatchSlotPos, acceptable, hitCount, comboMult, comboRatio };
+  return { d: d, start, update, interaction, interact, discard, choose, closePanel, readySlotPos, hatchSlotPos, acceptable, hitCount, comboMult, comboRatio };
 })();

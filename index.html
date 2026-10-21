@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>余味居</title>
-<link rel="stylesheet" href="css/style.css?v=1.0.1">
+<link rel="stylesheet" href="css/style.css?v=1.0.3">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
     <div class="rules">
       <h2>玩法介绍</h2>
       <ul>
-        <li><b>WASD</b>／方向键走动，<b>空格</b>交互，<b>Q</b>倒掉手上的菜。手机在画面里按住拖动</li>
+        <li><b>WASD</b>／方向键走动，<b>空格</b>交互，<b>Q</b>倒掉手上的菜。手机拖动画面走动，按钮亮起后可点击操作，也可轻点画面左半边</li>
         <li>余做好的菜堆在传菜口，取了送到客人手上。
         <li>连着让客人吃到对味的菜会攒<b>连击</b>，余的手速、老姜的脚力和客流都跟着涨</li>
         <li>缺料就在点单界面选<b>外卖救场</b>，实在伺候不了就<b>送客</b></li>
@@ -65,9 +65,9 @@
   <canvas id="stage" hidden></canvas>
 
   <div id="pad" class="pad" hidden>
-    <button id="btn-act" class="act">交互</button>
+    <button id="btn-act" class="act" disabled>靠近后交互</button>
     <button id="btn-toss">倒掉</button>
-    <span class="pad-tip">画面里按住拖动可以走</span>
+    <span class="pad-tip">拖动画面走动 · 按钮亮起可操作 · 轻点左半边也可交互</span>
   </div>
 
   <div id="adv" class="adv" hidden></div>
@@ -87,13 +87,13 @@
 <script src="js/audio.js"></script>
 <script src="js/assets.js?v=1.0.2"></script>
 <script src="js/mods.js"></script>
-<script src="js/packs/yan.js"></script>
+<script src="js/packs/yan.js?v=1.0.3"></script>
 <script src="js/adv.js"></script>
 <script src="js/recall.js?v=1.0.2"></script>
-<script src="js/render.js"></script>
-<script src="js/day.js?v=1.0.2"></script>
+<script src="js/render.js?v=1.0.3"></script>
+<script src="js/day.js?v=1.0.3"></script>
 <script src="js/night.js?v=1.0.1"></script>
-<script src="js/main.js?v=1.0.1"></script>
+<script src="js/main.js?v=1.0.3"></script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "af0c59bd33584bb7b1082c8e528c570b"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

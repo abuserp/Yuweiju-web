@@ -73,6 +73,7 @@ const Render = (function () {
     drawYu(d);
     drawGuests(d);
     drawPlayer(d);
+    drawInteraction();
     drawFloats(d);
     if (window.__yu) debugYu();
     if (window.__ready) debugReady();
@@ -435,6 +436,20 @@ const Render = (function () {
       }
       ownerTag(Day.d, p.carry.guestId, p.x + 16, p.y - 44);
     }
+  }
+
+  function drawInteraction() {
+    const action = !paused && Day.interaction();
+    if (!action) return;
+    ctx.save();
+    ctx.strokeStyle = PAL.jiang;
+    ctx.lineWidth = 3;
+    ctx.fillStyle = 'rgba(240,178,74,0.18)';
+    ctx.beginPath();
+    ctx.ellipse(action.x, action.y, 23, action.guest ? 9 : 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
   }
 
   function drawFloats(d) {
